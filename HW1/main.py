@@ -77,12 +77,13 @@ class LoginScreen(GridLayout):
         
 
     def createNameInput(self):
-        widget = self.initGridWidget(3, 'Name')
+        widget = self.initGridWidget(3, 'Name', label_size_hint_x=0.25)
         
         widget.firstName = TextInput(
             hint_text='First Name',
             multiline=False,
             font_size=sp(14),
+            size_hint_x=0.375,
             size_hint_y=1
         )
         widget.firstName.bind(text=self.on_name_text_change)
@@ -92,6 +93,7 @@ class LoginScreen(GridLayout):
             hint_text='Last Name',
             multiline=False,
             font_size=sp(14),
+            size_hint_x=0.375,
             size_hint_y=1
         )
         widget.lastName.bind(text=self.on_name_text_change)
@@ -100,13 +102,13 @@ class LoginScreen(GridLayout):
         return widget
     
     def createPhoneInput(self):
-        widget = self.initGridWidget(2, 'Phone Number', label_size_hint_x=0.33)
+        widget = self.initGridWidget(2, 'Phone Number', label_size_hint_x=0.25)
         
         widget.phone = TextInput(
             hint_text='(###) ###-####',
             multiline=False,
             font_size=sp(14),
-            size_hint_x=0.67,
+            size_hint_x=0.75,
             size_hint_y=1
         )
         widget.phone.bind(text=self.on_phone_change)
@@ -115,13 +117,13 @@ class LoginScreen(GridLayout):
         return widget
     
     def createAgeInput(self):
-        widget = self.initGridWidget(2, 'Age', label_size_hint_x=0.33)
+        widget = self.initGridWidget(2, 'Age', label_size_hint_x=0.25)
 
         widget.age_spinner = Spinner(
             text='Select Age Range',
             values=('Under 18','18-25','25-50','50+'),
             font_size=sp(14),
-            size_hint_x=0.67,
+            size_hint_x=0.75,
             size_hint_y=1
         )
         widget.age_spinner.bind(text=self.on_age_change)
@@ -131,13 +133,13 @@ class LoginScreen(GridLayout):
     
 
     def createGenderInput(self):
-        widget = self.initGridWidget(3, 'Gender')
+        widget = self.initGridWidget(2, 'Gender', label_size_hint_x=0.25)
         widget.size_hint_y = 2
         
         checkbox_container = GridLayout()
         checkbox_container.cols = 1
         checkbox_container.spacing = dp(8)
-        checkbox_container.size_hint_x = 0.67
+        checkbox_container.size_hint_x = 0.75
         checkbox_container.size_hint_y = 1
         
         male_layout = GridLayout(cols=2, size_hint_y=1)
