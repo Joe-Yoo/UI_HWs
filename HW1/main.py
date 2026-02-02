@@ -13,13 +13,19 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.button import Button
 from kivy.metrics import dp, sp
-from kivy.graphics import Color, Rectangle
+from kivy.graphics import Color, Rectangle, RoundedRectangle
 
 
 class LoginScreen(GridLayout):
 
     def __init__(self, **kwargs):
         super(LoginScreen, self).__init__(**kwargs)
+        
+        # Set background color
+        with self.canvas.before:
+            Color(0.043, 0.153, 0.153, 1)  # #0B2027
+            self.rect = RoundedRectangle(size=self.size, pos=self.pos, radius=[15])
+        self.bind(size=self.update_rect, pos=self.update_rect)
         
         self.cols = 1
         self.spacing = dp(5)
@@ -57,8 +63,8 @@ class LoginScreen(GridLayout):
 
         if color is not None:
             with widget.canvas.before:
-                Color(color)  
-                widget.rect = Rectangle(size=widget.size, pos=widget.pos)
+                Color(*color)  
+                widget.rect = RoundedRectangle(size=widget.size, pos=widget.pos, radius=[10])
             widget.bind(size=self.update_rect, pos=self.update_rect)
 
         text_label = Label(
@@ -68,7 +74,8 @@ class LoginScreen(GridLayout):
             size_hint_x=label_size_hint_x,
             text_size=(None, None),
             halign='center',
-            valign='middle'
+            valign='middle',
+            color=(1, 1, 1, 1)  # White text for better contrast
         )
         text_label.bind(size=lambda instance, size: setattr(instance, 'text_size', (size[0], None)))
         widget.add_widget(text_label)
@@ -77,7 +84,7 @@ class LoginScreen(GridLayout):
         
 
     def createNameInput(self):
-        widget = self.initGridWidget(3, 'Name', label_size_hint_x=0.25)
+        widget = self.initGridWidget(3, 'Name', color=(0.251, 0.475, 0.549, 1), label_size_hint_x=0.25)
         
         widget.firstName = TextInput(
             hint_text='First Name',
@@ -102,7 +109,7 @@ class LoginScreen(GridLayout):
         return widget
     
     def createPhoneInput(self):
-        widget = self.initGridWidget(2, 'Phone Number', label_size_hint_x=0.25)
+        widget = self.initGridWidget(2, 'Phone Number', color=(0.251, 0.475, 0.549, 1), label_size_hint_x=0.25)
         
         widget.phone = TextInput(
             hint_text='(###) ###-####',
@@ -117,7 +124,7 @@ class LoginScreen(GridLayout):
         return widget
     
     def createAgeInput(self):
-        widget = self.initGridWidget(2, 'Age', label_size_hint_x=0.25)
+        widget = self.initGridWidget(2, 'Age', color=(0.251, 0.475, 0.549, 1), label_size_hint_x=0.25)
 
         widget.age_spinner = Spinner(
             text='Select Age Range',
@@ -133,7 +140,7 @@ class LoginScreen(GridLayout):
     
 
     def createGenderInput(self):
-        widget = self.initGridWidget(2, 'Gender', label_size_hint_x=0.25)
+        widget = self.initGridWidget(2, 'Gender', color=(0.251, 0.475, 0.549, 1), label_size_hint_x=0.25)
         widget.size_hint_y = 2
         
         checkbox_container = GridLayout()
@@ -154,7 +161,8 @@ class LoginScreen(GridLayout):
             size_hint_x=0.8,
             size_hint_y=1,
             halign='left',
-            valign='middle'
+            valign='middle',
+            color=(1, 1, 1, 1)
         )
         male_label.bind(size=lambda instance, size: setattr(instance, 'text_size', (size[0], None)))
         male_layout.add_widget(widget.male_checkbox)
@@ -172,7 +180,8 @@ class LoginScreen(GridLayout):
             size_hint_x=0.8,
             size_hint_y=1,
             halign='left',
-            valign='middle'
+            valign='middle',
+            color=(1, 1, 1, 1)
         )
         female_label.bind(size=lambda instance, size: setattr(instance, 'text_size', (size[0], None)))
         female_layout.add_widget(widget.female_checkbox)
@@ -190,7 +199,8 @@ class LoginScreen(GridLayout):
             size_hint_x=0.8,
             size_hint_y=1,
             halign='left',
-            valign='middle'
+            valign='middle',
+            color=(1, 1, 1, 1)
         )
         other_label.bind(size=lambda instance, size: setattr(instance, 'text_size', (size[0], None)))
         other_layout.add_widget(widget.other_checkbox)
@@ -206,6 +216,11 @@ class LoginScreen(GridLayout):
     
     def createSubmitCancelButton(self):
         widget = GridLayout()
+        
+        with widget.canvas.before:
+            Color(0.251, 0.475, 0.549, 1)
+            widget.rect = RoundedRectangle(size=widget.size, pos=widget.pos, radius=[10])
+        widget.bind(size=self.update_rect, pos=self.update_rect)
         
         widget.cols = 2
         widget.spacing = dp(10)
