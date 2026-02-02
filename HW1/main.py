@@ -63,13 +63,14 @@ class LoginScreen(GridLayout):
 
         text_label = Label(
             text=label,
-            font_size=dp(16),
+            font_size=sp(16),
             size_hint_y=1,
             size_hint_x=label_size_hint_x,
             text_size=(None, None),
             halign='center',
             valign='middle'
         )
+        text_label.bind(size=lambda instance, size: setattr(instance, 'text_size', (size[0], None)))
         widget.add_widget(text_label)
 
         return widget
@@ -81,7 +82,7 @@ class LoginScreen(GridLayout):
         widget.firstName = TextInput(
             hint_text='First Name',
             multiline=False,
-            font_size=dp(14),
+            font_size=sp(14),
             size_hint_y=1
         )
         widget.firstName.bind(text=self.on_name_text_change)
@@ -90,7 +91,7 @@ class LoginScreen(GridLayout):
         widget.lastName = TextInput(
             hint_text='Last Name',
             multiline=False,
-            font_size=dp(14),
+            font_size=sp(14),
             size_hint_y=1
         )
         widget.lastName.bind(text=self.on_name_text_change)
@@ -104,7 +105,7 @@ class LoginScreen(GridLayout):
         widget.phone = TextInput(
             hint_text='(###) ###-####',
             multiline=False,
-            font_size=dp(14),
+            font_size=sp(14),
             size_hint_x=0.67,
             size_hint_y=1
         )
@@ -119,7 +120,7 @@ class LoginScreen(GridLayout):
         widget.age_spinner = Spinner(
             text='Select Age Range',
             values=('Under 18','18-25','25-50','50+'),
-            font_size=dp(14),
+            font_size=sp(14),
             size_hint_x=0.67,
             size_hint_y=1
         )
@@ -147,12 +148,13 @@ class LoginScreen(GridLayout):
         widget.male_checkbox.bind(active=self.on_gender_change)
         male_label = Label(
             text='Male',
-            font_size=dp(14),
+            font_size=sp(14),
             size_hint_x=0.8,
             size_hint_y=1,
-            text_size=(None, None),
-            halign='left'
+            halign='left',
+            valign='middle'
         )
+        male_label.bind(size=lambda instance, size: setattr(instance, 'text_size', (size[0], None)))
         male_layout.add_widget(widget.male_checkbox)
         male_layout.add_widget(male_label)
         
@@ -164,12 +166,13 @@ class LoginScreen(GridLayout):
         widget.female_checkbox.bind(active=self.on_gender_change)
         female_label = Label(
             text='Female',
-            font_size=dp(14),
+            font_size=sp(14),
             size_hint_x=0.8,
             size_hint_y=1,
-            text_size=(None, None),
-            halign='left'
+            halign='left',
+            valign='middle'
         )
+        female_label.bind(size=lambda instance, size: setattr(instance, 'text_size', (size[0], None)))
         female_layout.add_widget(widget.female_checkbox)
         female_layout.add_widget(female_label)
         
@@ -181,12 +184,13 @@ class LoginScreen(GridLayout):
         widget.other_checkbox.bind(active=self.on_gender_change)
         other_label = Label(
             text='Other/Prefer not to say',
-            font_size=dp(14),
+            font_size=sp(14),
             size_hint_x=0.8,
             size_hint_y=1,
-            text_size=(None, None),
-            halign='left'
+            halign='left',
+            valign='middle'
         )
+        other_label.bind(size=lambda instance, size: setattr(instance, 'text_size', (size[0], None)))
         other_layout.add_widget(widget.other_checkbox)
         other_layout.add_widget(other_label)
 
@@ -205,12 +209,14 @@ class LoginScreen(GridLayout):
         widget.spacing = dp(10)
         widget.padding = dp(20)
         widget.size_hint_y = None
+        widget.height = dp(80)
 
         widget.submit_button = Button(
             text='Submit',
-            font_size=dp(16),
+            font_size=sp(16),
             size_hint_x=0.5,
             size_hint_y=1,
+            height=dp(60),
             disabled=True  # Start disabled, will be updated dynamically
         )
         widget.submit_button.bind(on_press=self.on_submit_pressed)
@@ -218,9 +224,10 @@ class LoginScreen(GridLayout):
         
         widget.cancel_button = Button(
             text='Cancel',
-            font_size=dp(16),
+            font_size=sp(16),
             size_hint_x=0.5,
-            size_hint_y=1
+            size_hint_y=1,
+            height=dp(60)
         )
         widget.cancel_button.bind(on_press=self.on_cancel_pressed)
         widget.add_widget(widget.cancel_button)
