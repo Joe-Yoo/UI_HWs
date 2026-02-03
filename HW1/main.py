@@ -2,9 +2,9 @@ import kivy
 import re
 kivy.require('2.1.0')
 
-from kivy.config import Config
-Config.set('graphics', 'width', '400')
-Config.set('graphics', 'height', '500')
+# this sets the config.
+from kivy_config_helper import config_kivy
+config_kivy(enable_simulation=False)
 
 from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
