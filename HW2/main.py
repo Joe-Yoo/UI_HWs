@@ -1,0 +1,72 @@
+import random
+
+
+import kivy
+kivy.require('2.3.1')
+
+from kivy.app import App
+from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
+from kivy.uix.label import Label
+from kivy.core.window import Window
+from kivy_config_helper import config_kivy
+from questionnaire import QuestionnaireScreen
+from comparison import ComparisonScreen
+from results import ResultsScreen
+
+
+config_kivy()
+
+class DemoApp(App):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.screens = ['main', 'questionnaire', 'comparison', 'results']
+        self.current_screen_index = 0
+    
+    def build(self):
+        self.sm = ScreenManager()
+        self.sm.transition = NoTransition()
+        
+        main_screen = Screen(name='main')
+        main_label = Label(text='NASA TLX Form', font_size=24)
+        main_screen.add_widget(main_label)
+        
+        questionnaire = QuestionnaireScreen(name='questionnaire')
+        comparison = ComparisonScreen(name='comparison')
+        results = ResultsScreen(name='results')
+        
+        self.sm.add_widget(main_screen)
+        self.sm.add_widget(questionnaire)
+        self.sm.add_widget(comparison)
+        self.sm.add_widget(results)
+        
+        # Bind keyboard events
+        Window.bind(on_key_down=self.on_key_down)
+        
+        return self.sm
+    
+    def on_key_down(self, instance, keyboard, keycode, text, modifiers):
+        # print(keycode)
+        if keycode == 80:  # Left arrow
+            self.previous_screen()
+            return True
+        elif keycode == 79:  # Right arrow
+            self.next_screen() 
+            return True
+        return False
+    
+    def next_screen(self):
+        if not self.current_screen_index + 1 == len(self.screens): 
+            self.current_screen_index = (self.current_screen_index + 1)
+            self.sm.current = self.screens[self.current_screen_index]
+    
+    def previous_screen(self):
+        if not self.current_screen_index == 0: 
+            self.current_screen_index = (self.current_screen_index - 1) % len(self.screens)
+            self.sm.current = self.screens[self.current_screen_index]
+
+    # sp for fonts
+    # dp for scaling, padding, etc.
+
+if __name__ == '__main__':
+    DemoApp().run()
+
