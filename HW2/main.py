@@ -12,7 +12,7 @@ from kivy_config_helper import config_kivy
 from questionnaire import QuestionnaireScreen
 from comparison import ComparisonScreen
 from results import ResultsScreen
-
+from kivy.metrics import dp, sp
 
 config_kivy()
 
@@ -27,7 +27,7 @@ class DemoApp(App):
         self.sm.transition = NoTransition()
         
         main_screen = Screen(name='main')
-        main_label = Label(text='NASA TLX Form', font_size=24)
+        main_label = Label(text='NASA TLX Form', font_size=sp(24))
         main_screen.add_widget(main_label)
         
         questionnaire = QuestionnaireScreen(name='questionnaire')
@@ -39,17 +39,16 @@ class DemoApp(App):
         self.sm.add_widget(comparison)
         self.sm.add_widget(results)
         
-        # Bind keyboard events
         Window.bind(on_key_down=self.on_key_down)
         
         return self.sm
     
     def on_key_down(self, instance, keyboard, keycode, text, modifiers):
-        # print(keycode)
-        if keycode == 80:  # Left arrow
+        print(keycode)
+        if keycode == 29:
             self.previous_screen()
             return True
-        elif keycode == 79:  # Right arrow
+        elif keycode == 27:
             self.next_screen() 
             return True
         return False

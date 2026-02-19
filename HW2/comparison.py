@@ -3,7 +3,8 @@ import random
 from kivy.uix.label import Label
 from kivy.uix.screenmanager import Screen, ScreenManager, NoTransition
 from kivy.core.window import Window
-
+from kivy.metrics import dp, sp
+from utils import CAUSES
 # code taken from the sample code given from the assignment lol
 def choose_two(lst):
     res = []
@@ -27,8 +28,7 @@ class ComparisonScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        choices = ['Mental Demand', 'Physical Demand', 'Temporal Demand', 'Performance', 'Effort', 'Frustration']
-        choice_pairs = choose_two(choices)
+        choice_pairs = choose_two(CAUSES)
         choice_pairs = shuffle(choice_pairs)
         # print(choice_pairs)
 
@@ -42,14 +42,14 @@ class ComparisonScreen(Screen):
         self.nested_sm.transition = NoTransition()
 
         main_screen = Screen(name='main')
-        main_label = Label(text='Comparison page', font_size=24)
+        main_label = Label(text='Comparison page', font_size=sp(24))
         main_screen.add_widget(main_label)
 
         self.nested_sm.add_widget(main_screen)
         
         for screen_name in self.choice_pair_strings:
             screen = Screen(name=screen_name)
-            label = Label(text=screen_name, font_size=24)
+            label = Label(text=screen_name, font_size=sp(24))
             screen.add_widget(label)
             self.nested_sm.add_widget(screen)
 
