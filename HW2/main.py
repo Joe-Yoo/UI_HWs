@@ -1,5 +1,8 @@
 import random
 
+# Import and configure kivy BEFORE any other kivy modules
+from kivy_config_helper import config_kivy
+config_kivy(window_width=800, window_height=600)
 
 import kivy
 kivy.require('2.3.1')
@@ -8,13 +11,10 @@ from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
 from kivy.uix.label import Label
 from kivy.core.window import Window
-from kivy_config_helper import config_kivy
 from questionnaire import QuestionnaireScreen
 from comparison import ComparisonScreen
 from results import ResultsScreen
 from kivy.metrics import dp, sp
-
-config_kivy()
 
 class DemoApp(App):
     def __init__(self, **kwargs):

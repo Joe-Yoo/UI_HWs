@@ -18,29 +18,29 @@ class ScaleWidget(Widget):
         
         with self.canvas.after:
             Color(1, 1, 1, 1)
-            self.baseline = Line(width=2)
+            self.baseline = Line(width=dp(1))
             self.ticks = []
             for i in range(21):
-                tick = Line(width=2)
+                tick = Line(width=dp(1))
                 self.ticks.append(tick)
         
         self.label = Label(
             text=self.description,
-            font_size=sp(12),
+            font_size=sp(11),
             size_hint=(1, None),
-            height=0,
+            height=dp(50),
             halign='left',
-            valign='middle'
+            valign='bottom'
         )
         self.label.bind(size=lambda instance, value: setattr(instance, 'text_size', instance.size))
         self.add_widget(self.label)
         
         self.percent_label = Label(
             text="",
-            font_size=sp(14),
+            font_size=sp(12),
             size_hint=(None, None),
-            width=dp(50),
-            height=0,
+            width=dp(60),
+            height=dp(30),
             halign='right',
             valign='middle'
         )
@@ -49,24 +49,24 @@ class ScaleWidget(Widget):
         
         self.low_label = Label(
             text="Very Low",
-            font_size=sp(12),
+            font_size=sp(10),
             size_hint=(None, None),
-            width=0,
-            height=0,
+            width=dp(80),
+            height=dp(30),
             halign='left',
-            valign='top'
+            valign='bottom'
         )
         self.low_label.bind(size=lambda instance, value: setattr(instance, 'text_size', instance.size))
         self.add_widget(self.low_label)
         
         self.high_label = Label(
             text="Very High",
-            font_size=sp(12),
+            font_size=sp(10),
             size_hint=(None, None),
-            width=0,
-            height=0,
+            width=dp(80),
+            height=dp(30),
             halign='right',
-            valign='top'
+            valign='bottom'
         )
         self.high_label.bind(size=lambda instance, value: setattr(instance, 'text_size', instance.size))
         self.add_widget(self.high_label)
@@ -92,22 +92,25 @@ class ScaleWidget(Widget):
             else:
                 tick.points = [x_pos, rect_y + tick_height / 2, x_pos, rect_y]
         
-        label_height = self.height / 3 - dp(10)
+        # Position the question text at the TOP of the widget
+        label_height = self.height / 3 - dp(5)
         self.label.height = label_height
         self.label.pos = (self.x, self.y + 2 * self.height / 3 + dp(5))
         self.label.width = self.width
         
+        # Position percentage label next to the scale bar
         self.percent_label.height = rect_height
-        self.percent_label.pos = (self.x - dp(55), rect_y)
+        self.percent_label.pos = (self.x - dp(65), rect_y)
         
-        bottom_label_height = self.height / 3 - dp(10)
-        bottom_y = self.y + dp(5)
+        # Position "Very Low" and "Very High" labels at the BOTTOM
+        bottom_label_height = self.height / 3 - dp(5) 
+        bottom_y = self.y
         
         self.low_label.height = bottom_label_height
         self.low_label.width = self.width / 2
         self.low_label.pos = (self.x, bottom_y)
         
-        self.high_label.height = bottom_label_height
+        self.high_label.height = bottom_label_height  
         self.high_label.width = self.width / 2
         self.high_label.pos = (self.x + self.width / 2, bottom_y)
     
