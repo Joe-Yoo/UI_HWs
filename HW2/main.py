@@ -1,6 +1,5 @@
 import random
 
-# Import and configure kivy BEFORE any other kivy modules
 from kivy_config_helper import config_kivy
 config_kivy(window_width=800, window_height=600)
 
@@ -57,9 +56,6 @@ class DemoApp(App):
         if not self.current_screen_index == 0: 
             self.current_screen_index = (self.current_screen_index - 1) % len(self.screens)
             self.sm.current = self.screens[self.current_screen_index]
-
-    # sp for fonts
-    # dp for scaling, padding, etc.
 
 if __name__ == '__main__':
     DemoApp().run()

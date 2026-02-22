@@ -92,17 +92,14 @@ class ScaleWidget(Widget):
             else:
                 tick.points = [x_pos, rect_y + tick_height / 2, x_pos, rect_y]
         
-        # Position the question text at the TOP of the widget
         label_height = self.height / 3 - dp(5)
         self.label.height = label_height
         self.label.pos = (self.x, self.y + 2 * self.height / 3 + dp(5))
         self.label.width = self.width
         
-        # Position percentage label next to the scale bar
         self.percent_label.height = rect_height
         self.percent_label.pos = (self.x - dp(65), rect_y)
         
-        # Position "Very Low" and "Very High" labels at the BOTTOM
         bottom_label_height = self.height / 3 - dp(5) 
         bottom_y = self.y
         

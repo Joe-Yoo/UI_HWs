@@ -10,6 +10,7 @@ from kivy.graphics import Color, Rectangle
 
 from utils import CAUSES, DESCRIPTIONS
 from scale_widget import ScaleWidget
+from user_data import user_data
 
 class QuestionnaireScreen(Screen):
     def __init__(self, **kwargs):
@@ -69,7 +70,7 @@ class QuestionnaireScreen(Screen):
             
             def update_highlight(label, rect, *args):
                 rect.pos = label.pos
-                rect.size = (label.width * 0.85, label.size[1])  # Reduce width to 80%
+                rect.size = (label.width * 0.85, label.size[1])
             
             cause_label.bind(pos=lambda instance, value, r=highlight_rect: update_highlight(instance, r),
                            size=lambda instance, value, r=highlight_rect: update_highlight(instance, r))
@@ -167,6 +168,11 @@ class QuestionnaireScreen(Screen):
         return False
     
     def submit(self, instance=None):
+        for i, scale_widget in enumerate(self.scale_widgets):
+            cause = CAUSES[i]
+            percentage = scale_widget.current_percent
+            user_data.add_percent(cause, percentage)
+        
         self.manager.current = 'results'
     
     def check_all_interacted(self):
