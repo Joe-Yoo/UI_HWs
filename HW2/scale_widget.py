@@ -26,7 +26,7 @@ class ScaleWidget(Widget):
         
         self.label = Label(
             text=self.description,
-            font_size=sp(11),
+            font_size=sp(12),
             size_hint=(1, None),
             height=dp(50),
             halign='left',
@@ -49,24 +49,24 @@ class ScaleWidget(Widget):
         
         self.low_label = Label(
             text="Very Low",
-            font_size=sp(10),
+            font_size=sp(12),
             size_hint=(None, None),
             width=dp(80),
             height=dp(30),
             halign='left',
-            valign='bottom'
+            valign='top'
         )
         self.low_label.bind(size=lambda instance, value: setattr(instance, 'text_size', instance.size))
         self.add_widget(self.low_label)
         
         self.high_label = Label(
             text="Very High",
-            font_size=sp(10),
+            font_size=sp(12),
             size_hint=(None, None),
             width=dp(80),
             height=dp(30),
             halign='right',
-            valign='bottom'
+            valign='top'
         )
         self.high_label.bind(size=lambda instance, value: setattr(instance, 'text_size', instance.size))
         self.add_widget(self.high_label)

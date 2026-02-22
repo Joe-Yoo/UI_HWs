@@ -19,24 +19,19 @@ from kivy.metrics import dp, sp
 class DemoApp(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.screens = ['main', 'questionnaire', 'comparison', 'results']
+        self.screens = ['comparison', 'questionnaire', 'results']
         self.current_screen_index = 0
     
     def build(self):
         self.sm = ScreenManager()
         self.sm.transition = NoTransition()
         
-        main_screen = Screen(name='main')
-        main_label = Label(text='NASA TLX Form', font_size=sp(24))
-        main_screen.add_widget(main_label)
-        
-        questionnaire = QuestionnaireScreen(name='questionnaire')
         comparison = ComparisonScreen(name='comparison')
+        questionnaire = QuestionnaireScreen(name='questionnaire')
         results = ResultsScreen(name='results')
         
-        self.sm.add_widget(main_screen)
-        self.sm.add_widget(questionnaire)
         self.sm.add_widget(comparison)
+        self.sm.add_widget(questionnaire)
         self.sm.add_widget(results)
         
         Window.bind(on_key_down=self.on_key_down)
@@ -44,7 +39,7 @@ class DemoApp(App):
         return self.sm
     
     def on_key_down(self, instance, keyboard, keycode, text, modifiers):
-        print(keycode)
+        # print(keycode)
         if keycode == 29:
             self.previous_screen()
             return True

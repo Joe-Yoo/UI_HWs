@@ -69,7 +69,7 @@ class QuestionnaireScreen(Screen):
             
             def update_highlight(label, rect, *args):
                 rect.pos = label.pos
-                rect.size = label.size
+                rect.size = (label.width * 0.85, label.size[1])  # Reduce width to 80%
             
             cause_label.bind(pos=lambda instance, value, r=highlight_rect: update_highlight(instance, r),
                            size=lambda instance, value, r=highlight_rect: update_highlight(instance, r))
@@ -167,7 +167,7 @@ class QuestionnaireScreen(Screen):
         return False
     
     def submit(self, instance=None):
-        self.manager.current = 'comparison'
+        self.manager.current = 'results'
     
     def check_all_interacted(self):
         all_interacted = all(widget.has_interacted for widget in self.scale_widgets)
