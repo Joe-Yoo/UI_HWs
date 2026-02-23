@@ -43,7 +43,7 @@ class QuestionnaireScreen(Screen):
         layout.add_widget(mouse_label)
 
         keyboard_label = Label(
-            text="[b]Keyboard[/b]: Use up/down arrow keys or tab to navigate. Use left/right arrow keys to adjust scale bar. Press enter to submit.",
+            text="[b]Keyboard[/b]: Press tab to navigate. Use left/right arrow keys to adjust scale bar. Press enter to submit or go back.",
             markup=True,
             font_size=sp(12),
             size_hint_y=0.2,
@@ -87,13 +87,19 @@ class QuestionnaireScreen(Screen):
             self.scale_widgets.append(scale_widget)
             layout.add_widget(scale_widget)
 
-        layout.add_widget(
-            Label(
-                text="",
-                size_hint_y=0.5,
-                size_hint_x=0.3
-            )
+        previous_button_container = AnchorLayout(
+            size_hint_y=0.5,
+            size_hint_x=0.3,
+            anchor_x='left',
+            anchor_y='center'
         )
+        self.previous_button = Button(
+            text="Previous",
+            size_hint=(1, 1)
+        )
+        self.previous_button.bind(on_press=self.go_back)
+        previous_button_container.add_widget(self.previous_button)
+        layout.add_widget(previous_button_container)
         
         button_container = AnchorLayout(
             size_hint_y=0.5,
@@ -103,12 +109,17 @@ class QuestionnaireScreen(Screen):
         )
         self.submit_button = Button(
             text="Submit",
-            size_hint=(0.5, 1),
+            size_hint=(0.42857, 1), # 3/7 lol
             disabled=True
         )
         self.submit_button.bind(on_press=self.submit)
         button_container.add_widget(self.submit_button)
         layout.add_widget(button_container)
+
+        self.focusable_elements = list(range(len(self.scale_widgets)))
+        self.focusable_elements.append('previous')
+        self.focusable_elements.append('submit')
+        self.current_focus_index = -1
 
         self.add_widget(layout)
     
@@ -122,12 +133,18 @@ class QuestionnaireScreen(Screen):
     
     def on_window_touch(self, instance, touch):
         self.hide_all_highlights()
+        self.current_focus_index = -1
         return False
     
     def hide_all_highlights(self):
         for highlight_color, _ in self.label_highlights:
             highlight_color.a = 0
         self.focused_label_index = -1
+        
+        self.previous_button.text = "Previous"
+        self.previous_button.markup = False
+        self.submit_button.text = "Submit"
+        self.submit_button.markup = False
     
     def show_highlight(self, index):
         if 0 <= index < len(self.label_highlights):
@@ -136,34 +153,76 @@ class QuestionnaireScreen(Screen):
             highlight_color.a = 0.3
             self.focused_label_index = index
     
+    def update_focus_styling(self):
+        """Update visual styling based on current focus."""
+        # Clear all highlights
+        for highlight_color, _ in self.label_highlights:
+            highlight_color.a = 0
+        self.previous_button.text = "Previous"
+        self.previous_button.markup = False
+        self.submit_button.text = "Submit"
+        self.submit_button.markup = False
+        
+        if self.current_focus_index >= 0 and self.current_focus_index < len(self.focusable_elements):
+            focused_element = self.focusable_elements[self.current_focus_index]
+            
+            if isinstance(focused_element, int):
+                # Focusing on a scale widget
+                self.focused_label_index = focused_element
+                highlight_color, _ = self.label_highlights[focused_element]
+                highlight_color.a = 0.3
+            elif focused_element == 'previous':
+                self.previous_button.text = "[b]Previous[/b]"
+                self.previous_button.markup = True
+            elif focused_element == 'submit':
+                self.submit_button.text = "[b]Submit[/b]"
+                self.submit_button.markup = True
+    
     def on_key_down(self, instance, keyboard, keycode, text, modifiers):
-        if keycode == 82:
-            if self.focused_label_index == -1:
-                self.show_highlight(0)
-            elif self.focused_label_index > 0:
-                self.show_highlight(self.focused_label_index - 1)
-            return True
-        elif keycode == 81 or keycode == 43:
-            if self.focused_label_index == -1:
-                self.show_highlight(0)
-            elif self.focused_label_index < len(self.cause_labels) - 1:
-                self.show_highlight(self.focused_label_index + 1)
+        if keycode == 43:
+            if self.current_focus_index < 0:
+                self.current_focus_index = 0
+            else:
+                attempts = 0
+                max_attempts = len(self.focusable_elements)
+                
+                while attempts < max_attempts:
+                    if self.current_focus_index < len(self.focusable_elements) - 1:
+                        self.current_focus_index += 1
+                    else:
+                        self.current_focus_index = 0
+                    
+                    focused_element = self.focusable_elements[self.current_focus_index]
+                    if focused_element == 'submit' and self.submit_button.disabled:
+                        attempts += 1
+                        continue
+                    break
+            
+            self.update_focus_styling()
             return True
         elif keycode == 79:
-            if self.focused_label_index >= 0:
-                scale_widget = self.scale_widgets[self.focused_label_index]
-                new_percent = scale_widget.current_percent + 5
-                scale_widget.set_percent(new_percent)
+            if self.current_focus_index >= 0:
+                focused_element = self.focusable_elements[self.current_focus_index]
+                if isinstance(focused_element, int):
+                    scale_widget = self.scale_widgets[focused_element]
+                    new_percent = scale_widget.current_percent + 5
+                    scale_widget.set_percent(new_percent)
             return True
         elif keycode == 80:
-            if self.focused_label_index >= 0:
-                scale_widget = self.scale_widgets[self.focused_label_index]
-                new_percent = scale_widget.current_percent - 5
-                scale_widget.set_percent(new_percent)
+            if self.current_focus_index >= 0:
+                focused_element = self.focusable_elements[self.current_focus_index]
+                if isinstance(focused_element, int):
+                    scale_widget = self.scale_widgets[focused_element]
+                    new_percent = scale_widget.current_percent - 5
+                    scale_widget.set_percent(new_percent)
             return True
         elif keycode == 40:
-            if not self.submit_button.disabled:
-                self.submit()
+            if self.current_focus_index >= 0:
+                focused_element = self.focusable_elements[self.current_focus_index]
+                if focused_element == 'previous':
+                    self.go_back()
+                elif focused_element == 'submit' and not self.submit_button.disabled:
+                    self.submit()
             return True
         return False
     
@@ -174,6 +233,9 @@ class QuestionnaireScreen(Screen):
             user_data.add_percent(cause, percentage)
         
         self.manager.current = 'results'
+    
+    def go_back(self, instance=None):
+        self.manager.current = 'comparison'
     
     def check_all_interacted(self):
         all_interacted = all(widget.has_interacted for widget in self.scale_widgets)
