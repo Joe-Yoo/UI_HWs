@@ -1,0 +1,28 @@
+[
+    {
+        "type": "title",
+        "title": "RSVP Reader Settings"
+    },
+    {
+        "type": "numeric",
+        "title": "Words Per Minute (WPM)",
+        "desc": "Speed at which words are displayed",
+        "section": "reading",
+        "key": "wpm"
+    },
+    {
+        "type": "numeric",
+        "title": "Font Size",
+        "desc": "Size of the displayed word text",
+        "section": "reading",
+        "key": "font_size"
+    },
+    {
+        "type": "scrollable_options",
+        "title": "Font",
+        "desc": "Font used for word display",
+        "section": "reading",
+        "key": "font",
+        "options": []
+    }
+]

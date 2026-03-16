@@ -1,7 +1,7 @@
 import random
 
 from kivy_config_helper import config_kivy
-config_kivy(window_width=500, window_height=300)
+config_kivy(window_width=600, window_height=350)
 
 import kivy
 kivy.require('2.3.1')
@@ -11,7 +11,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
 from kivy.uix.label import Label
 from kivy.core.window import Window
 from kivy.metrics import dp, sp
-from Player import Player
+from player import player
 
 class RSVP(App):
     def __init__(self, **kwargs):
@@ -21,7 +21,7 @@ class RSVP(App):
     def build(self):
         self.screen_manager = ScreenManager(transition=NoTransition())
         
-        player_screen = Player(name='player')
+        player_screen = player(name='player')
         self.screen_manager.add_widget(player_screen)
         
         return self.screen_manager
