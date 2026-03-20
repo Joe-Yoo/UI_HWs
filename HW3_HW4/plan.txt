@@ -1,0 +1,20 @@
+Jump Back - jump back a fixed amount of time in playback timeline (left arrow key)
+ - swipe left
+
+Jump Forward - jump forward a fix amount of time in playback timeline (right arrow key)
+ - swipe right
+
+Speed Up - faster playback (up arrow key)
+ - swipe up
+
+Slow Down - slower playback (down arrow key)
+ - swipe down
+
+Font Bigger - make font bigger (+ or = keys)
+ - zoom gesture
+
+Font Smaller - make font smaller (- key)
+ - pinch gesture
+
+Pause Toggle - pause/unpause playback (spacebar)
+ - swipe up or down
