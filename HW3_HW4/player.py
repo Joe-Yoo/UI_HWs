@@ -13,18 +13,30 @@ from kivy.uix.popup import Popup
 from kivy.utils import escape_markup
 from kivy.graphics import Line
 from kivy.uix.settings import SettingOptions
+from gestures import build_gesture_db, Gesture
+from kivy.core.window import Window
+from kivy.core.text import LabelBase
 
 from scrollable_options import scrollable_options
 import re
 import os
+import time
+import vlc
 
 class player(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.gdb, self.gestures = build_gesture_db()
+        Window.bind(on_key_down=self.on_key_down)
         self.is_playing = False
         self.words = []
+        self.timestamps = []
+        self.natural_wpm = None
+        self.play_start_wall = 0
+        self.play_start_ts = 0
         self.current_word_index = 0
         self.word_event = None
+        self.vlc_player = None
         self.wpm = 450
         self.font_size = 50
         self.font_name = "Roboto"
@@ -46,12 +58,19 @@ class player(Screen):
         )
         left_btn = Button(text='Choose File', size_hint=(0.5, 1), width=100, color=(1, 1, 1, 1))
         left_btn.bind(on_press=self.open_file_chooser)
-        spacer = Widget()
+        self.stats_label = Label(
+            text=self.stats_text(),
+            color=(0, 0, 0, 1),
+            size_hint=(1, 1),
+            halign='center',
+            valign='middle'
+        )
+        self.stats_label.bind(size=lambda inst, val: setattr(inst, 'text_size', val))
         right_btn = Button(text='Settings', size_hint=(0.5, 1), width=100, color=(1, 1, 1, 1))
         right_btn.bind(on_press=self.open_settings)
 
         self.top_bar.add_widget(left_btn)
-        self.top_bar.add_widget(spacer)
+        self.top_bar.add_widget(self.stats_label)
         self.top_bar.add_widget(right_btn)
 
         top_line = Widget(size_hint=(1, None), height=dp(2))
@@ -136,6 +155,174 @@ class player(Screen):
 
         self.add_widget(root)
 
+    def on_touch_down(self, touch):
+        touch.ud['gesture_points'] = [(touch.x, touch.y)]
+        return super().on_touch_down(touch)
+
+    def on_touch_move(self, touch):
+        touch.ud.setdefault('gesture_points', []).append((touch.x, touch.y))
+        return super().on_touch_move(touch)
+    
+    def on_touch_up(self, touch):
+        points = touch.ud.get('gesture_points', [])
+        if len(points) >= 5:
+            g = Gesture()
+            g.add_stroke(point_list=points)
+            g.normalize()
+            result = self.gdb.find(g, minscore=0.70)
+            if result:
+                score, matched = result
+                self.on_gesture(matched)
+        return super().on_touch_up(touch)
+
+    def on_gesture(self, matched):
+        if matched is self.gestures["swipe_left"]:
+            self.jump_back()
+        elif matched is self.gestures["swipe_right"]:
+            self.jump_forward()
+        elif matched is self.gestures["swipe_up"]:
+            self.speed_up()
+        elif matched is self.gestures["swipe_down"]:
+            self.slow_down()
+        elif matched is self.gestures["swipe_caret"]:
+            self.font_bigger()
+        elif matched is self.gestures["swipe_v"]:
+            self.font_smaller()
+        elif matched is self.gestures["swipe_greater"]:
+            self.on_play_press(None)
+
+    KEY_NAMES = {
+        273: 'up',
+        274: 'down',
+        275: 'right',
+        276: 'left',
+        32: 'space',
+        45: '-',
+        43: '+',
+        61: '+',
+    }
+
+    def on_key_down(self, window, key, scancode, codepoint, modifiers):
+        name = self.KEY_NAMES.get(key)
+        if name == 'left': 
+            self.jump_back()
+        elif name == 'right': 
+            self.jump_forward()
+        elif name == 'up': 
+            self.speed_up()
+        elif name == 'down': 
+            self.slow_down()
+        elif name == '+': 
+            self.font_bigger()
+        elif name == '-': 
+            self.font_smaller()
+        elif name == 'space': 
+            self.on_play_press(None)
+
+    def words_for_seconds(self, seconds):
+        if self.use_timecodes:
+            elapsed = 0
+            count = 0
+            i = self.current_word_index
+            while elapsed < seconds and count < len(self.words):
+                _, duration = self.words[i % len(self.words)]
+                elapsed += duration if duration is not None else (60.0 / self.wpm)
+                count += 1
+                i += 1
+            return count
+        else:
+            return max(1, round(seconds * self.wpm / 60))
+
+    def seek_audio(self):
+        if self.vlc_player and self.timestamps:
+            self.vlc_player.set_time(int(self.timestamps[self.current_word_index] * 1000))
+
+    def jump_back(self):
+        if not self.words:
+            return
+        n = self.words_for_seconds(3)
+        self.current_word_index = max(0, self.current_word_index - n)
+        word, _ = self.words[self.current_word_index]
+        left, right = self.format_word_with_focus(word)
+        self.left_word_label.text = left
+        self.word_label.text = right
+        self.seek_audio()
+        if self.is_playing:
+            if self.word_event:
+                self.word_event.cancel()
+            self.reanchor()
+            self.schedule_next_word()
+
+    def jump_forward(self):
+        if not self.words:
+            return
+        n = self.words_for_seconds(3)
+        self.current_word_index = min(len(self.words) - 1, self.current_word_index + n)
+        word, _ = self.words[self.current_word_index]
+        left, right = self.format_word_with_focus(word)
+        self.left_word_label.text = left
+        self.word_label.text = right
+        self.seek_audio()
+        if self.is_playing:
+            if self.word_event:
+                self.word_event.cancel()
+            self.reanchor()
+            self.schedule_next_word()
+
+    def stats_text(self):
+        return f"{self.wpm} WPM\nFont {self.font_size}"
+
+    def refresh_stats(self):
+        self.stats_label.text = self.stats_text()
+
+    def save_wpm(self):
+        config = ConfigParser()
+        config.read('kivy_config.ini')
+        config.set('reading', 'wpm', str(self.wpm))
+        config.write()
+
+    def set_audio_rate(self):
+        if self.vlc_player and self.natural_wpm:
+            self.vlc_player.set_rate(self.wpm / self.natural_wpm)
+
+    def speed_up(self):
+        self.wpm += 50
+        self.save_wpm()
+        self.refresh_stats()
+        self.set_audio_rate()
+        if self.is_playing and self.word_event:
+            self.word_event.cancel()
+            self.reanchor()
+            self.schedule_next_word()
+
+    def slow_down(self):
+        self.wpm = max(50, self.wpm - 50)
+        self.save_wpm()
+        self.refresh_stats()
+        self.set_audio_rate()
+        if self.is_playing and self.word_event:
+            self.word_event.cancel()
+            self.reanchor()
+            self.schedule_next_word()
+
+    def apply_font_size(self):
+        self.left_word_label.font_size = dp(self.font_size)
+        self.word_label.font_size = dp(self.font_size)
+        config = ConfigParser()
+        config.read('kivy_config.ini')
+        config.set('reading', 'font_size', str(self.font_size))
+        config.write()
+
+    def font_bigger(self):
+        self.font_size += 8
+        self.apply_font_size()
+        self.refresh_stats()
+
+    def font_smaller(self):
+        self.font_size = max(8, self.font_size - 8)
+        self.apply_font_size()
+        self.refresh_stats()
+
     def draw_alignment_line(self, instance, value):
         instance.canvas.after.clear()
         with instance.canvas.after:
@@ -199,25 +386,52 @@ class player(Screen):
             dampened = 1.0 + (ratio - 1.0) * 0.5
             return (60.0 / self.wpm) * dampened
     
+    def reanchor(self):
+        self.play_start_wall = time.monotonic()
+        self.play_start_ts = self.timestamps[self.current_word_index] if self.timestamps else 0
+
     def on_play_press(self, instance):
         self.is_playing = not self.is_playing
         self.update_play_button(self.play_btn, None)
-        
+
         if self.is_playing:
+            if self.current_word_index >= len(self.words) - 1:
+                self.current_word_index = 0
+                if self.vlc_player:
+                    self.vlc_player.set_time(0)
             if self.words:
+                self.reanchor()
                 self.schedule_next_word()
+            if self.vlc_player:
+                self.vlc_player.play()
         else:
             if self.word_event:
                 self.word_event.cancel()
                 self.word_event = None
+            if self.vlc_player:
+                self.vlc_player.pause()
 
     def schedule_next_word(self):
-        interval = self.get_word_interval(self.words[self.current_word_index])
-        self.word_event = Clock.schedule_once(self.update_word, interval)
+        if self.use_timecodes and self.timestamps and self.natural_wpm:
+            next_idx = (self.current_word_index + 1) % len(self.words)
+            scale = self.natural_wpm / self.wpm
+            target = self.play_start_wall + (self.timestamps[next_idx] - self.play_start_ts) * scale
+            delay = max(0, target - time.monotonic())
+        else:
+            delay = self.get_word_interval(self.words[self.current_word_index])
+        self.word_event = Clock.schedule_once(self.update_word, delay)
 
     def update_word(self, dt):
         if self.words:
-            self.current_word_index = (self.current_word_index + 1) % len(self.words)
+            self.current_word_index += 1
+            if self.current_word_index >= len(self.words):
+                self.current_word_index = len(self.words) - 1
+                self.is_playing = False
+                self.word_event = None
+                self.update_play_button(self.play_btn, None)
+                if self.vlc_player:
+                    self.vlc_player.pause()
+                return
             word, _ = self.words[self.current_word_index]
             left_text, right_text = self.format_word_with_focus(word)
             self.left_word_label.text = left_text
@@ -268,7 +482,18 @@ class player(Screen):
             if file_path.endswith('.timecode'):
                 self.words = self.parse_timecode(content)
                 self.use_timecodes = True
+                wav_path = os.path.splitext(file_path)[0] + '.wav'
+                if os.path.exists(wav_path):
+                    if self.vlc_player:
+                        self.vlc_player.stop()
+                    self.vlc_player = vlc.MediaPlayer(wav_path)
+                    self.set_audio_rate()
+                else:
+                    self.vlc_player = None
             else:
+                if self.vlc_player:
+                    self.vlc_player.stop()
+                    self.vlc_player = None
                 content = re.sub(r'\[t[\d.]+\]', '', content)
                 content = re.sub('\n', ' ', content)
                 raw_words = [w for w in content.split(' ') if w]
@@ -295,14 +520,18 @@ class player(Screen):
     def parse_timecode(self, content):
         tokens = re.findall(r'\[t([\d.]+)\](\S+)', content)
         result = []
+        self.timestamps = []
         for i, (timestamp, word) in enumerate(tokens):
             t = float(timestamp)
+            self.timestamps.append(t)
             if i + 1 < len(tokens):
-                next_t = float(tokens[i + 1][0])
-                duration = next_t - t
+                duration = float(tokens[i + 1][0]) - t
             else:
-                duration = 0.5  # fallback for last word
+                duration = 0.5
             result.append((word, duration))
+        if result:
+            avg_duration = sum(d for _, d in result) / len(result)
+            self.natural_wpm = 60.0 / avg_duration
         return result
 
     def open_settings(self, instance):
@@ -361,7 +590,6 @@ class player(Screen):
         popup.open()
 
     def get_available_fonts(self):
-        from kivy.core.text import LabelBase
         fonts_dir = os.path.join(os.path.dirname(__file__), 'Fonts')
         font_names = []
         seen = set()
